@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sentiment Flow Visualizer | Deep MEMM NLP</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            animation: fadeIn 0.8s ease-in;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .badge {
+            display: inline-block;
+            background: rgba(255,255,255,0.2);
+            padding: 5px 15px;
+            border-radius: 20px;
+            margin: 10px 5px;
+            font-size: 0.9em;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            animation: slideUp 0.5s ease-out;
+        }
+
+        .input-section {
+            margin-bottom: 20px;
+        }
+
+        .input-section label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1em;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 100px;
+            transition: border-color 0.3s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #666;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .examples-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .example-btn {
+            padding: 10px;
+            background: #f8f8f8;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.3s;
+            font-size: 0.9em;
+        }
+
+        .example-btn:hover {
+            border-color: #667eea;
+            background: #f0f0ff;
+        }
+
+        .results-section {
+            display: none;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        .results-section.show {
+            display: block;
+        }
+
+        .overall-sentiment {
+            text-align: center;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        }
+
+        .sentiment-emoji {
+            font-size: 4em;
+            margin-bottom: 10px;
+            animation: bounce 0.6s ease-in-out;
+        }
+
+        .sentiment-label {
+            font-size: 2em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .sentiment-confidence {
+            font-size: 1.2em;
+            color: #666;
+        }
+
+        .sentiment-positive {
+            background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
+        }
+
+        .sentiment-negative {
+            background: linear-gradient(135deg, #fa8084 0%, #f48d8f 100%);
+        }
+
+        .sentiment-neutral {
+            background: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%);
+        }
+
+        .word-analysis {
+            margin-top: 20px;
+        }
+
+        .word-analysis h3 {
+            margin-bottom: 15px;
+            color: #555;
+        }
+
+        .words-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .word-tag {
+            display: inline-flex;
+            align-items: center;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 1em;
+            animation: popIn 0.3s ease-out;
+            animation-fill-mode: both;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .word-tag.positive {
+            background: #84fab0;
+            color: #2d5016;
+        }
+
+        .word-tag.negative {
+            background: #fa8084;
+            color: #5c1618;
+        }
+
+        .word-tag.neutral {
+            background: #e0e0e0;
+            color: #666;
+        }
+
+        .word-tag-emoji {
+            margin-right: 5px;
+        }
+
+        .sentiment-bars {
+            margin-top: 20px;
+        }
+
+        .sentiment-bar {
+            margin-bottom: 15px;
+        }
+
+        .sentiment-bar-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .sentiment-bar-track {
+            height: 20px;
+            background: #f0f0f0;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .sentiment-bar-fill {
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.8s ease-out;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 10px;
+            color: white;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+
+        .sentiment-bar-fill.positive {
+            background: linear-gradient(90deg, #84fab0 0%, #8fd3f4 100%);
+        }
+
+        .sentiment-bar-fill.negative {
+            background: linear-gradient(90deg, #fa8084 0%, #f48d8f 100%);
+        }
+
+        .sentiment-bar-fill.neutral {
+            background: linear-gradient(90deg, #e0c3fc 0%, #8ec5fc 100%);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            display: none;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        .error-message {
+            background: #ffebee;
+            color: #c62828;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes popIn {
+            from {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        @keyframes bounce {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .footer {
+            text-align: center;
+            color: white;
+            margin-top: 30px;
+            opacity: 0.8;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .card {
+                padding: 20px;
+            }
+
+            .examples-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Sentiment Flow Visualizer</h1>
+            <p>Deep Maximum Entropy Markov Model for NLP</p>
+            <div>
+                <span class="badge">PyTorch</span>
+                <span class="badge">BiLSTM</span>
+                <span class="badge">Word2Vec</span>
+                <span class="badge">Real-time Analysis</span>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="input-section">
+                <label>Enter text to analyze:</label>
+                <textarea id="textInput" placeholder="Type or paste your text here... Try something like 'I love this amazing movie!' or 'This is terrible and disappointing'"></textarea>
+
+                <div class="button-group">
+                    <button class="btn-primary" onclick="analyzeText()">Analyze Sentiment</button>
+                    <button class="btn-secondary" onclick="clearAll()">Clear</button>
+                </div>
+            </div>
+
+            <div class="input-section">
+                <label>Or try an example:</label>
+                <div class="examples-grid">
+                    <button class="example-btn" onclick="loadExample('I love this amazing movie it was fantastic')">
+                        Positive Example
+                    </button>
+                    <button class="example-btn" onclick="loadExample('This is terrible and awful I hate it')">
+                        Negative Example
+                    </button>
+                    <button class="example-btn" onclick="loadExample('The food was okay but the service was great')">
+                        Mixed Sentiment
+                    </button>
+                </div>
+            </div>
+
+            <div class="error-message" id="errorMessage"></div>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Analyzing sentiment...</p>
+        </div>
+
+        <div class="results-section" id="results">
+            <div class="card">
+                <div class="overall-sentiment" id="overallSentiment">
+                    <div class="sentiment-emoji" id="sentimentEmoji"></div>
+                    <div class="sentiment-label" id="sentimentLabel"></div>
+                    <div class="sentiment-confidence" id="sentimentConfidence"></div>
+                </div>
+
+                <div class="sentiment-bars">
+                    <div class="sentiment-bar">
+                        <div class="sentiment-bar-label">
+                            <span>Positive</span>
+                            <span id="positivePercent">0%</span>
+                        </div>
+                        <div class="sentiment-bar-track">
+                            <div class="sentiment-bar-fill positive" id="positiveBar"></div>
+                        </div>
+                    </div>
+
+                    <div class="sentiment-bar">
+                        <div class="sentiment-bar-label">
+                            <span>Negative</span>
+                            <span id="negativePercent">0%</span>
+                        </div>
+                        <div class="sentiment-bar-track">
+                            <div class="sentiment-bar-fill negative" id="negativeBar"></div>
+                        </div>
+                    </div>
+
+                    <div class="sentiment-bar">
+                        <div class="sentiment-bar-label">
+                            <span>Neutral</span>
+                            <span id="neutralPercent">0%</span>
+                        </div>
+                        <div class="sentiment-bar-track">
+                            <div class="sentiment-bar-fill neutral" id="neutralBar"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="word-analysis">
+                    <h3>Word-by-Word Analysis</h3>
+                    <div class="words-container" id="wordsContainer"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>Built with Deep MEMM | PyTorch Neural Networks</p>
+            <p>Multi-Layer Perceptron + Bi-LSTM + Word2Vec Embeddings</p>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:5000/api';
+
+        function loadExample(text) {
+            document.getElementById('textInput').value = text;
+            analyzeText();
+        }
+
+        function clearAll() {
+            document.getElementById('textInput').value = '';
+            document.getElementById('results').classList.remove('show');
+            document.getElementById('errorMessage').classList.remove('show');
+        }
+
+        async function analyzeText() {
+            const text = document.getElementById('textInput').value.trim();
+
+            if (!text) {
+                showError('Please enter some text to analyze');
+                return;
+            }
+
+            // Hide previous results and errors
+            document.getElementById('results').classList.remove('show');
+            document.getElementById('errorMessage').classList.remove('show');
+
+            // Show loading
+            document.getElementById('loading').classList.add('show');
+
+            try {
+                const response = await fetch(`${API_URL}/analyze`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ text: text })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    displayResults(data);
+                } else {
+                    showError(data.error || 'An error occurred');
+                }
+            } catch (error) {
+                showError('Failed to connect to the server. Make sure the backend is running.');
+            } finally {
+                document.getElementById('loading').classList.remove('show');
+            }
+        }
+
+        function displayResults(data) {
+            const { overall, words } = data;
+
+            // Update overall sentiment
+            const sentimentClass = overall.sentiment.toLowerCase();
+            const overallDiv = document.getElementById('overallSentiment');
+            overallDiv.className = `overall-sentiment sentiment-${sentimentClass}`;
+
+            const emoji = overall.sentiment === 'Positive' ? '😊' :
+                         overall.sentiment === 'Negative' ? '😞' : '😐';
+
+            document.getElementById('sentimentEmoji').textContent = emoji;
+            document.getElementById('sentimentLabel').textContent = overall.sentiment;
+            document.getElementById('sentimentConfidence').textContent =
+                `${(overall.confidence * 100).toFixed(1)}% confidence`;
+
+            // Update sentiment bars
+            const scores = overall.scores || {
+                Positive: overall.sentiment === 'Positive' ? overall.confidence : 0,
+                Negative: overall.sentiment === 'Negative' ? overall.confidence : 0,
+                Neutral: overall.sentiment === 'Neutral' ? overall.confidence : 0
+            };
+
+            updateSentimentBar('positive', scores.Positive);
+            updateSentimentBar('negative', scores.Negative);
+            updateSentimentBar('neutral', scores.Neutral);
+
+            // Display word-by-word analysis
+            const wordsContainer = document.getElementById('wordsContainer');
+            wordsContainer.innerHTML = '';
+
+            words.forEach((wordData, index) => {
+                const wordTag = document.createElement('div');
+                const sentimentClass = wordData.sentiment.toLowerCase();
+                const emoji = wordData.sentiment === 'Positive' ? '😊' :
+                             wordData.sentiment === 'Negative' ? '😞' : '😐';
+
+                wordTag.className = `word-tag ${sentimentClass}`;
+                wordTag.style.animationDelay = `${index * 0.05}s`;
+                wordTag.innerHTML = `
+                    <span class="word-tag-emoji">${emoji}</span>
+                    <span>${wordData.word}</span>
+                `;
+
+                wordTag.title = `${wordData.sentiment} (${(wordData.confidence * 100).toFixed(1)}%)`;
+
+                wordsContainer.appendChild(wordTag);
+            });
+
+            // Show results
+            document.getElementById('results').classList.add('show');
+        }
+
+        function updateSentimentBar(type, value) {
+            const percentage = (value * 100).toFixed(1);
+            document.getElementById(`${type}Percent`).textContent = `${percentage}%`;
+            document.getElementById(`${type}Bar`).style.width = `${percentage}%`;
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = message;
+            errorDiv.classList.add('show');
+        }
+
+        // Allow Enter key to submit (with Shift+Enter for new lines)
+        document.getElementById('textInput').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                analyzeText();
+            }
+        });
+    </script>
+</body>
+</html>
