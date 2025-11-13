@@ -73,6 +73,11 @@ class SentimentAnalyzer:
         self.word_to_ix = {}
         self._build_demo_vocab()
 
+        # Unknown token
+        self.UNK_TOKEN = "<UNK>"
+        self.word_to_ix[self.UNK_TOKEN] = len(self.word_to_ix)
+        self.unk_idx = self.word_to_ix[self.UNK_TOKEN]
+
         # Initialize model
         self.model = SimpleMLP(len(self.word_to_ix))
         self.model.eval()
@@ -125,7 +130,7 @@ class SentimentAnalyzer:
         with torch.no_grad():
             for i, word in enumerate(words):
                 # Get word index (or use unknown token)
-                word_idx = self.word_to_ix.get(word, max(self.word_to_ix.values()) if self.word_to_ix else 0)
+                word_idx = self.word_to_ix.get(word, self.unk_idx)
 
                 # Prepare context
                 if i == 0:
@@ -134,7 +139,7 @@ class SentimentAnalyzer:
                 else:
                     # Subsequent words: previous + current
                     prev_word = words[i-1]
-                    prev_word_idx = self.word_to_ix.get(prev_word, max(self.word_to_ix.values()) if self.word_to_ix else 0)
+                    prev_word_idx = self.word_to_ix.get(prev_word, self.unk_idx)
                     context_word_idxs = torch.tensor([prev_word_idx, word_idx], dtype=torch.long)
 
                 # Previous tag one-hot
