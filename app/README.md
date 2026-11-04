@@ -22,6 +22,8 @@ An interactive web application that performs real-time sentiment analysis using 
 
 ### 1. Install Dependencies
 
+`requirements.txt` lives at the repository root, so run this from there:
+
 ```bash
 pip install -r requirements.txt
 ```
@@ -33,7 +35,15 @@ cd app/backend
 python app.py
 ```
 
-The server will start on `http://localhost:5000`
+The server will start on `http://localhost:5000`. It reads two optional
+environment variables (see `app/backend/app.py`):
+
+- `PORT` - port to listen on (default `5000`)
+- `FLASK_DEBUG` - set to `true` to enable Flask debug mode (default off)
+
+```bash
+PORT=8080 FLASK_DEBUG=true python app.py
+```
 
 ### 3. Open in Browser
 
