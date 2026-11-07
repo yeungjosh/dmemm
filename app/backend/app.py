@@ -25,10 +25,15 @@ def index():
 def analyze():
     """Analyze sentiment of input text"""
     try:
-        data = request.get_json()
-        text = data.get('text', '')
+        data = request.get_json(silent=True)
+        if not isinstance(data, dict):
+            return jsonify({'error': 'Request body must be a JSON object'}), 400
 
-        if not text:
+        text = data.get('text', '')
+        if not isinstance(text, str):
+            return jsonify({'error': '"text" must be a string'}), 400
+
+        if not text.strip():
             return jsonify({'error': 'No text provided'}), 400
 
         # Analyze text
